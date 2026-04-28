@@ -1,0 +1,20 @@
+idf_component_register(
+SRCS
+    "main.c"
+    "led/led.c"
+    "uart/uart.c"
+    "wifi/wifi.c"
+PRIV_REQUIRES
+    spi_flash
+    esp_driver_gpio
+    esp_driver_uart
+    esp_wifi
+    esp_netif
+    esp_event
+    nvs_flash
+INCLUDE_DIRS
+    ""
+    "led"
+    "uart"
+    "wifi"
+)
