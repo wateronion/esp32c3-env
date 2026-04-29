@@ -130,7 +130,8 @@ void wifi_init(void)
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     /* 4. 为 Station 模式创建默认网络接口 */
-    esp_netif_create_default_wifi_sta();
+    esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
+    ESP_ERROR_CHECK(esp_netif_set_hostname(sta_netif, "wyh"));
 
     /* 5. 初始化 WiFi 驱动（使用默认配置） */
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
