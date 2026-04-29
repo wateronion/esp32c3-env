@@ -11,6 +11,7 @@
 #include "freertos/task.h"
 #include "led.h"
 #include "wifi.h"
+#include "mqtt.h"
 
 void app_main(void)
 {
@@ -18,8 +19,5 @@ void app_main(void)
     led_init();
 
     xTaskCreate(wifi_task, "wifi_task", 4096, NULL, 5, NULL);
-    while (1)
-    {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+    xTaskCreate(mqtt_task, "mqtt_task", MQTT_TASK_STACK_SIZE, NULL, MQTT_TASK_PRIORITY, NULL);
 }

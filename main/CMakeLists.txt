@@ -4,6 +4,7 @@ SRCS
     "led/led.c"
     "uart/uart.c"
     "wifi/wifi.c"
+    "mqtt/mqtt.c"
 PRIV_REQUIRES
     spi_flash
     esp_driver_gpio
@@ -12,9 +13,11 @@ PRIV_REQUIRES
     esp_netif
     esp_event
     nvs_flash
+    mqtt
 INCLUDE_DIRS
     ""
     "led"
     "uart"
     "wifi"
+    "mqtt"
 )
