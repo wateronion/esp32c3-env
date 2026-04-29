@@ -5,6 +5,7 @@ SRCS
     "uart/uart.c"
     "wifi/wifi.c"
     "mqtt/mqtt.c"
+    "dht11/dht11.c"
 PRIV_REQUIRES
     spi_flash
     esp_driver_gpio
@@ -20,4 +21,5 @@ INCLUDE_DIRS
     "uart"
     "wifi"
     "mqtt"
+    "dht11"
 )

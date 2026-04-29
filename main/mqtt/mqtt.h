@@ -3,22 +3,27 @@
 /* ============================================================
  *  OneNet MQTT 配置
  *
- *  根据 OneNet 平台设备信息填写以下参数：
- *     - Client ID :  设备名称
- *     - Username  :  产品 ID
- *     - Password  :  鉴权信息（token）
+ *  根据 OneNet 平台版本选择正确的 Broker 地址：
  *
- *  OneNet 常用 Broker 地址（根据平台版本选择）:
- *    新版 Studio : "mqtt://mqtt.heclouds.com:1883"
- *    旧版平台    : "mqtt://183.230.40.96:6002"
+ *  旧版 OneNet（多协议接入）:
+ *    - 地址: mqtt.heclouds.com  端口: 6002
+ *    - IP:   183.230.40.96      端口: 6002
+ *    - 认证: Client ID = 设备名, Username = 产品ID, Password = token
+ *
+ *  新版 OneNET Studio:
+ *    - 地址: studio-mqtt.heclouds.com  端口: 1883
+ *    - 认证: Client ID / Username / Password 由平台分配
+ *
+ *  你的密码格式 (version=2018-10-31&res=products/...) 是旧版 OneNet
+ *  的 token 鉴权格式，推荐使用端口 6002。
  * ============================================================ */
-#define MQTT_BROKER_URI     "mqtt://mqtt.heclouds.com:1883"
+#define MQTT_BROKER_URI     "mqtt://mqtt.heclouds.com:6002"
 #define MQTT_CLIENT_ID      "LAODING1"
 #define MQTT_USERNAME       "Uo4T0ad9Y8"
 #define MQTT_PASSWORD       "version=2018-10-31&res=products%2FUo4T0ad9Y8%2Fdevices%2FLAODING1&et=1780024480&method=md5&sign=wZbKTh5x%2B2CJzWMjEs1UAA%3D%3D"
 
 /* MQTT 缓冲区与超时配置 */
-#define MQTT_TASK_STACK_SIZE 4096
+#define MQTT_TASK_STACK_SIZE 5120
 #define MQTT_TASK_PRIORITY   5
 
 /*
