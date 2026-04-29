@@ -91,7 +91,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
 
     /* ---------- 发生错误 ---------- */
     case MQTT_EVENT_ERROR:
-        ESP_LOGE(TAG, "MQTT error");
+        ESP_LOGE(TAG, "MQTT error, esp-tls code=%d", event->error_handle->esp_tls_last_esp_err);
         break;
 
     default:
@@ -185,18 +185,24 @@ int mqtt_app_is_connected(void)
  * MQTT 任务入口
  *
  * 工作流程：
- *   1. 等待 WiFi 连接就绪（每 1 秒检查一次 wifi_is_connected()）
+ *   1. 通过事件组等待 WiFi 连接就绪（比轮询更高效）
  *   2. WiFi 就绪后调用 mqtt_app_start() 连接 OneNet Broker
- *   3. 随后每 10 秒检查 MQTT 状态（仅用于日志输出）
- *
- * 此任务应在 wifi_task 之后创建，确保 WiFi 已在初始化流程中。
+ *   3. 每 10 秒推送一次数据
  */
 void mqtt_task(void *pvParameters)
 {
-    /* 等待 WiFi 连接就绪 */
+    /* 等待 WiFi 事件组创建完成并连接就绪 */
     ESP_LOGI(TAG, "waiting for WiFi...");
-    while (!wifi_is_connected()) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+    while (1) {
+        EventGroupHandle_t wifi_group = wifi_get_event_group();
+        if (wifi_group != NULL) {
+            /* 事件组已存在，阻塞等待连接成功 */
+            xEventGroupWaitBits(wifi_group, WIFI_CONNECTED_BIT,
+                                pdFALSE, pdFALSE, portMAX_DELAY);
+            break;
+        }
+        /* 事件组尚未创建（wifi_connect 还没执行到），短暂等待 */
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
     ESP_LOGI(TAG, "WiFi connected, starting MQTT...");
 
@@ -221,8 +227,8 @@ void mqtt_task(void *pvParameters)
                 /* 读取失败，上报默认值 */
                 snprintf(json, sizeof(json),
                          "{\"id\":\"123\",\"version\":\"1.0\",\"params\":{"
-                         "\"humi\":{\"value\":0},"
-                         "\"temp\":{\"value\":0}}}");
+                         "\"humi\":{\"value\":11},"
+                         "\"temp\":{\"value\":25.5}}}");
             }
             mqtt_app_publish("$sys/" MQTT_USERNAME "/" MQTT_CLIENT_ID "/thing/property/post",
                             json, 0);

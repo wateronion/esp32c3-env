@@ -205,9 +205,15 @@ dht11_data_t dht11_read(void)
         return result;
     }
 
-    /* ---------- 5. 解析数据 ---------- */
+    /* ---------- 5. 解析数据并限幅 ---------- */
     result.humidity    = (float)bytes[0] + (float)bytes[1] / 10.0f;
     result.temperature = (float)bytes[2] + (float)bytes[3] / 10.0f;
+
+    if (result.humidity < DHT11_HUMI_MIN) result.humidity = DHT11_HUMI_MIN;
+    if (result.humidity > DHT11_HUMI_MAX) result.humidity = DHT11_HUMI_MAX;
+    if (result.temperature < DHT11_TEMP_MIN) result.temperature = DHT11_TEMP_MIN;
+    if (result.temperature > DHT11_TEMP_MAX) result.temperature = DHT11_TEMP_MAX;
+
     result.ret = 0;
 
     ESP_LOGI(TAG, "temp=%.1f humi=%.1f", result.temperature, result.humidity);

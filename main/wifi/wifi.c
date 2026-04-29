@@ -242,30 +242,14 @@ EventGroupHandle_t wifi_get_event_group(void)
 /*
  * WiFi 任务入口
  *
- * 这是推荐的 WiFi 使用方式——一个独立的任务处理 WiFi 全生命周期：
- *
- *   1. 调用 wifi_init()    初始化驱动（NFS → netif → 事件循环 → WiFi）
- *   2. 调用 wifi_connect() 连接热点（阻塞直到成功或重连耗尽）
- *   3. 每隔 5 秒打印一次连接状态
- *
- * 在 main.c 中通过 xTaskCreate 创建此任务即可：
- *   xTaskCreate(wifi_task, "wifi_task", 4096, NULL, 5, NULL);
+ * 完成初始化 → 连接后自动删除。后续断开重连由事件回调自动处理，
+ * 上层任务（如 MQTT）通过事件组监听连接状态即可。
  */
 void wifi_task(void *pvParameters)
 {
     wifi_init();
     wifi_connect();
 
-    while (1)
-    {
-        if (wifi_is_connected())
-        {
-            printf("WiFi is connected\n");
-        }
-        else
-        {
-            printf("WiFi is disconnected\n");
-        }
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-    }
+    /* 初始化完成，删除自身。重连由事件回调自动处理 */
+    vTaskDelete(NULL);
 }

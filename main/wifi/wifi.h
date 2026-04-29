@@ -29,7 +29,7 @@
  * wifi_disconnect() - 断开并停止 WiFi
  * wifi_is_connected() - 查询当前连接状态（0=未连接, 1=已连接）
  * wifi_get_event_group() - 获取事件组句柄，可用于外部任务监听 WiFi 状态
- * wifi_task()   - 完整的 WiFi 任务入口：init → connect → 周期性打印状态
+ * wifi_task()   - 完整的 WiFi 任务入口：init → connect，完成后自动删除
  */
 void wifi_init(void);
 void wifi_connect(void);
