@@ -23,7 +23,8 @@
  *
  * --- OneNet MQTT 地址 ---
  *
- *   Broker : mqtt.heclouds.com:1883
+ *   旧版 : mqtt.heclouds.com:6002  （你的 token 格式对应此版本）
+ *   新版 : studio-mqtt.heclouds.com:1883
  *   认证方式：Client ID = 设备名称, Username = 产品 ID, Password = token
  * ============================================================ */
 
@@ -35,6 +36,7 @@
 #include "mqtt_client.h"
 #include "mqtt.h"
 #include "wifi.h"
+#include "dht11.h"
 
 static const char *TAG = "mqtt";
 
@@ -202,11 +204,28 @@ void mqtt_task(void *pvParameters)
     mqtt_app_start();
 
     /* 周期性推送温湿度数据到 OneNet */
+    char json[256];
     while (1) {
+        /* 读取 DHT11 温湿度 */
+        dht11_data_t dht = dht11_read();
+
         if (mqtt_app_is_connected()) {
+            if (dht.ret == 0) {
+                /* DHT11 读取成功，填入实际数据 */
+                snprintf(json, sizeof(json),
+                         "{\"id\":\"123\",\"version\":\"1.0\",\"params\":{"
+                         "\"humi\":{\"value\":%d},"
+                         "\"temp\":{\"value\":%.1f}}}",
+                         (int)dht.humidity, dht.temperature);
+            } else {
+                /* 读取失败，上报默认值 */
+                snprintf(json, sizeof(json),
+                         "{\"id\":\"123\",\"version\":\"1.0\",\"params\":{"
+                         "\"humi\":{\"value\":0},"
+                         "\"temp\":{\"value\":0}}}");
+            }
             mqtt_app_publish("$sys/" MQTT_USERNAME "/" MQTT_CLIENT_ID "/thing/property/post",
-                            "{\"id\":\"123\",\"version\":\"1.0\",\"params\":{\"humi\":{\"value\":80},\"temp\":{\"value\":23.6}}}",
-                            0);
+                            json, 0);
         } else {
             ESP_LOGW(TAG, "MQTT not connected, wait for reconnect...");
         }
