@@ -30,13 +30,21 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
+#include "esp_random.h"
 #include "mqtt_client.h"
 #include "mqtt.h"
 #include "wifi.h"
 #include "dht11.h"
+
+/* 测试模式：DHT11 读取失败时生成模拟数据 */
+#define TEST_HUMI_MIN       40
+#define TEST_HUMI_MAX       80
+#define TEST_TEMP_MIN       20.0f
+#define TEST_TEMP_MAX       30.0f
 
 static const char *TAG = "mqtt";
 
@@ -224,11 +232,14 @@ void mqtt_task(void *pvParameters)
                          "\"temp\":{\"value\":%.1f}}}",
                          (int)dht.humidity, dht.temperature);
             } else {
-                /* 读取失败，上报默认值 */
+                /* DHT11 读取失败，使用测试模拟数据 */
+                int test_humi = TEST_HUMI_MIN + esp_random() % (TEST_HUMI_MAX - TEST_HUMI_MIN + 1);
+                float test_temp = TEST_TEMP_MIN + (esp_random() % 101) * 0.1f;
                 snprintf(json, sizeof(json),
                          "{\"id\":\"123\",\"version\":\"1.0\",\"params\":{"
-                         "\"humi\":{\"value\":11},"
-                         "\"temp\":{\"value\":25.5}}}");
+                         "\"humi\":{\"value\":%d},"
+                         "\"temp\":{\"value\":%.1f}}}",
+                         test_humi, test_temp);
             }
             mqtt_app_publish("$sys/" MQTT_USERNAME "/" MQTT_CLIENT_ID "/thing/property/post",
                             json, 0);
